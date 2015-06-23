@@ -77,43 +77,42 @@ int main(int argc, char *argv[])
             }
             count++;
         }
-        else
-            if (regexec(&regex, line, MATCHES, groups, 0) == 0) {
-                fclose(file_w);
-                printed = sprintf(filename, "%s/%.*s.R",
+        else if (regexec(&regex, line, MATCHES, groups, 0) == 0) {
+            fclose(file_w);
+            printed = sprintf(filename, "%s/%.*s.R",
+                    dir,
+                    groups[NAME].rm_eo - groups[NAME].rm_so,
+                    line + groups[NAME].rm_so);
+            if (printed == 3 + 2 + 1) {
+                nameless_funcs++;
+                sprintf(filename, "%s/func%d.R", dir, nameless_funcs);
+                file_w = fopen(filename, "wx");
+                if (!file_w) {
+                    fprintf(stderr, "Failed to create file\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if (access(filename, F_OK) == 0) {
+                duplicate++;
+                sprintf(filename, "%s/%.*s-%d.R",
                         dir,
                         groups[NAME].rm_eo - groups[NAME].rm_so,
-                        line + groups[NAME].rm_so);
-                if (printed == 3 + 2 + 1) {
-                    nameless_funcs++;
-                    sprintf(filename, "%s/func%d.R", dir, nameless_funcs);
-                    file_w = fopen(filename, "wx");
-                    if (!file_w) {
-                        fprintf(stderr, "Failed to create file\n");
-                        exit(EXIT_FAILURE);
-                    }
+                        line + groups[NAME].rm_so, duplicate);
+                file_w = fopen(filename, "wx");
+                if (!file_w) {
+                    fprintf(stderr, "Failed to create file\n");
+                    exit(EXIT_FAILURE);
                 }
-                else if (access(filename, F_OK) == 0) {
-                    duplicate++;
-                    sprintf(filename, "%s/%.*s-%d.R",
-                            dir,
-                            groups[NAME].rm_eo - groups[NAME].rm_so,
-                            line + groups[NAME].rm_so, duplicate);
-                    file_w = fopen(filename, "wx");
-                    if (!file_w) {
-                        fprintf(stderr, "Failed to create file\n");
-                        exit(EXIT_FAILURE);
-                    }
-                }
-                else {
-                    file_w = fopen(filename, "wx");
-                    if (!file_w) {
-                        fprintf(stderr, "Failed to create file\n");
-                        exit(EXIT_FAILURE);
-                    }
-                }
-                count++;
             }
+            else {
+                file_w = fopen(filename, "wx");
+                if (!file_w) {
+                    fprintf(stderr, "Failed to create file\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+            count++;
+        }
         fprintf(file_w, "%s", line);
     }
 
