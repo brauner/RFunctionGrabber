@@ -17,7 +17,8 @@ int main(int argc, char *argv[])
     int nameless_funcs;
     int printed;
     int reti;
-    char error[1000];
+    size_t nameless;
+    char reg_err_buff[1000];
     char line[4096];
     char filename[1000];
     char *name = argv[1];
@@ -29,6 +30,10 @@ int main(int argc, char *argv[])
     count = 0;
     duplicate = 0;
     nameless_funcs = 0;
+    /* Length of directory name + 2 chars for .R ending + newline char \n.
+     * Whenever sprintf() returns this number it means that the function has no
+     * name. This saves some code for calculating the matching pattern. */
+    nameless = strlen(dir) + 2 + 1;
 
     if (argc > 3) {
         fprintf(stderr, "Too many arguments\n");
@@ -37,8 +42,8 @@ int main(int argc, char *argv[])
     reti = regcomp(&regex, "((\"|\')*([a-zA-Z0-9.:_-|]+)[[:blank:]]*(\"|\')*(<-|=))*[[:space:]]*function[[:blank:]]*\\([[:blank:]]*", REG_EXTENDED);
     if (reti) {
         fprintf(stderr, "Regex compilation failed\n");
-        regerror(reti, &regex, error, sizeof(error));
-        perror(error);
+        regerror(reti, &regex, reg_err_buff, sizeof(reg_err_buff));
+        perror(reg_err_buff);
         exit(EXIT_FAILURE);
     }
 
@@ -83,7 +88,7 @@ int main(int argc, char *argv[])
                     dir,
                     groups[NAME].rm_eo - groups[NAME].rm_so,
                     line + groups[NAME].rm_so);
-            if (printed == 3 + 2 + 1) {
+            if ((printed >= 0) && ((size_t) printed == nameless)) {
                 nameless_funcs++;
                 sprintf(filename, "%s/func%d.R", dir, nameless_funcs);
                 file_w = fopen(filename, "wx");
