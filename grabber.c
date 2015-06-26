@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #define MATCHES 4
+#define MAXNAME 100
 #define NAME 3
 
 int main(int argc, char *argv[])
@@ -31,7 +32,7 @@ int main(int argc, char *argv[])
     duplicate = 0;
     nameless_funcs = 0;
     /* Length of directory name + 2 chars for .R ending + newline char \n.
-     * Whenever sprintf() returns this number it means that the function has no
+     * Whenever snprintf() returns this number it means that the function has no
      * name. This saves some code for calculating the matching pattern. */
     nameless = strlen(dir) + 2 + 1;
 
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    sprintf(filename, "%s/Start.R", dir);
+    snprintf(filename, MAXNAME, "%s/Start.R", dir);
     errno = 0;
     file_w = fopen(filename, "wx");
     if (!file_w) {
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
     while (fgets(line, sizeof(line), file_r) != NULL) {
         if (regexec(&regex, line, MATCHES, groups, 0) == 0 && count == 0) {
             char newname[1000];
-            sprintf(newname, "%s/%.*s-%d.R",
+            snprintf(newname, MAXNAME, "%s/%.*s-%d.R",
                     dir,
                     groups[NAME].rm_eo - groups[NAME].rm_so,
                     line + groups[NAME].rm_so, duplicate);
@@ -84,13 +85,13 @@ int main(int argc, char *argv[])
         }
         else if (regexec(&regex, line, MATCHES, groups, 0) == 0) {
             fclose(file_w);
-            printed = sprintf(filename, "%s/%.*s.R",
+            printed = snprintf(filename, MAXNAME, "%s/%.*s.R",
                     dir,
                     groups[NAME].rm_eo - groups[NAME].rm_so,
                     line + groups[NAME].rm_so);
             if ((printed >= 0) && ((size_t) printed == nameless)) {
                 nameless_funcs++;
-                sprintf(filename, "%s/func%d.R", dir, nameless_funcs);
+                snprintf(filename, MAXNAME, "%s/func%d.R", dir, nameless_funcs);
                 file_w = fopen(filename, "wx");
                 if (!file_w) {
                     fprintf(stderr, "Failed to create file\n");
@@ -99,7 +100,7 @@ int main(int argc, char *argv[])
             }
             else if (access(filename, F_OK) == 0) {
                 duplicate++;
-                sprintf(filename, "%s/%.*s-%d.R",
+                snprintf(filename, MAXNAME, "%s/%.*s-%d.R",
                         dir,
                         groups[NAME].rm_eo - groups[NAME].rm_so,
                         line + groups[NAME].rm_so, duplicate);
