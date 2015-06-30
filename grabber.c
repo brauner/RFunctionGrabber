@@ -10,6 +10,7 @@
 #define MATCHES 4
 #define MAXNAME 100
 #define NAME 3
+#define LINELEN 4096
 
 int main(int argc, char *argv[])
 {
@@ -20,7 +21,7 @@ int main(int argc, char *argv[])
     int reti;
     size_t nameless;
     char reg_err_buff[1000];
-    char line[4096];
+    char line[LINELEN];
     char filename[1000];
     char *name = argv[1];
     char *dir = argv[2];
@@ -71,7 +72,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    while (fgets(line, sizeof(line), file_r) != NULL) {
+    while (fgets(line, LINELEN, file_r) != NULL) {
         if (regexec(&regex, line, MATCHES, groups, 0) == 0 && count == 0) {
             char newname[1000];
             snprintf(newname, MAXNAME, "%s/%.*s-%d.R",
