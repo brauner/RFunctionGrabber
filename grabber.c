@@ -79,8 +79,15 @@ int main(int argc, char *argv[])
                     dir,
                     groups[NAME].rm_eo - groups[NAME].rm_so,
                     line + groups[NAME].rm_so, duplicate);
-            if(rename(filename, newname) != 0) {
-                fprintf(stderr, "Error renaming %s.\n", filename);
+            fclose(file_w);
+            if (rename(filename, newname) != 0) {
+                fprintf(stderr, "Error renaming %s.\n",
+                        filename);
+            }
+            file_w = fopen(newname, "w");
+            if (!file_w) {
+                fprintf(stderr, "Failed to create file\n");
+                exit(EXIT_FAILURE);
             }
             count++;
         }
